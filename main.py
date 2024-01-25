@@ -7,6 +7,7 @@ import numpy as np
 from PIL import Image
 import tensorflow as tf
 from keras.preprocessing.image import ImageDataGenerator
+import csv
 
 class_names = {
     0: 'Ali Day',
@@ -34,15 +35,11 @@ def read_images(search_directory):
     count = 0
     min_size = (1e10, 1e10)
     min_size_addr = None
-    skip_next = False
     # List of common image file extensions
     image_extensions = ['.jpg', '.jpeg', '.png', '.gif', '.bmp']
 
     # Iterate over all files and directories in the given directory
     for root, dirs, files in os.walk(search_directory):
-        if skip_next is True:
-            skip_next = False
-            continue
         try:
             file_dir = int(root.replace(search_directory, ''))
             image_per_class[file_dir] = 0
@@ -52,7 +49,6 @@ def read_images(search_directory):
 
         for file in files:
             if any(file.lower().endswith(ext) for ext in image_extensions):
-                skip_next = True
                 """im = Image.open(f'{root}\\{file}')
                 if min(im.size) < min(min_size):
                     min_size = im.size
@@ -96,6 +92,33 @@ def resize_and_save(input_directory, output_directory):
     print("Image resizing and saving complete.")
 
 
+def create_csv(search_directory, output_csv):
+    image_extensions = ['.jpg']
+    data_csv = []
+    for root, dirs, files in os.walk(search_directory):
+        classes = np.zeros(16)
+        try:
+            file_dir = int(root.replace(search_directory, ''))
+            image_per_class[file_dir] = 0
+            classes[file_dir] = 1
+        except:
+            continue
+
+        for file in files:
+            if any(file.lower().endswith(ext) for ext in image_extensions):
+                im = np.array(Image.open(f'{root}\\{file}')).flatten()
+                data_csv.append([*im, *classes])
+                del im
+    with open(output_csv, 'w', newline='') as csvfile:
+        # Create a CSV writer object
+        csv_writer = csv.writer(csvfile)
+
+        # Write the data to the CSV file
+        csv_writer.writerows(data_csv)
+
+    print(f"CSV file '{output_csv}' created successfully. it has {len(data_csv)} rows and {len(data_csv[0])} columns.")
+
+
 datagen = ImageDataGenerator(
     rotation_range=40,
     width_shift_range=0.1,
@@ -107,9 +130,8 @@ datagen = ImageDataGenerator(
     horizontal_flip=True,
 )
 
-
 read_images("images\\")
-
+create_csv("images\\", 'input.csv')
 """im = np.array(Image.open('images\\8\\1.jpg'))
 im = im.reshape((1,) + im.shape)
 print(im.shape)
