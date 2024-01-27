@@ -2,3 +2,8 @@
 images/
 input.csv
 images_original/
+saved_model/
+images_copy/
+images_gray/
+test/
+__pychache__/

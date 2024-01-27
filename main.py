@@ -4,6 +4,7 @@ from keras.models import Sequential, load_model
 from keras.layers import Conv2D, MaxPooling2D, Dense, Flatten
 from keras.losses import CategoricalCrossentropy
 from keras.optimizers import Adam
+from keras.regularizers import l2, l1
 from sklearn.model_selection import train_test_split
 
 model = Sequential()
@@ -19,10 +20,10 @@ model.add(MaxPooling2D((2, 2)))
 model.add(Flatten())
 model.add(Dense(128, activation='relu'))
 model.add(Dense(64, activation='relu'))
-model.add(Dense(32, activation='relu'))
-model.add(Dense(16))
+model.add(Dense(32, activation='relu', kernel_regularizer=l1(0.01)))
+model.add(Dense(16, activation='softmax'))
 
-loss = CategoricalCrossentropy(from_logits=True)
+loss = CategoricalCrossentropy(from_logits=False)
 optimizer = Adam()
 metrics = ['accuracy']
 model.compile(optimizer=optimizer, loss=loss, metrics=metrics)
@@ -32,16 +33,16 @@ print(f'model summary:\n{model.summary()}')
 
 data = np.loadtxt('input.csv', delimiter=',')
 
-print('data loaded.')
+print(f'data loaded: {data.shape}')
 X = data[:, :30_000] / 255.0
 Y = data[:, 30_000:]
 x_train, x_test, y_train, y_test = train_test_split(X, Y, train_size=0.8, test_size=0.2)
 print('train and test data splitted.')
 x_train = x_train.reshape(len(x_train), 100, 100, 3)
 x_test = x_test.reshape(len(x_test), 100, 100, 3)
-
-batch_size = 100
-epochs = 18
+print(f'train data : {x_train.shape}\ntest data : {x_test.shape}\ny train : {y_train.shape}\ny test : {y_test.shape}')
+batch_size = 64
+epochs = 15
 model.fit(x_train, y_train, epochs=epochs, batch_size=batch_size, verbose=2)
 
 model.evaluate(x_test, y_test)

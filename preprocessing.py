@@ -69,27 +69,18 @@ def read_images(search_directory):
 
 
 def resize_and_save(input_directory, output_directory):
-    if not os.path.exists(output_directory):
-        os.makedirs(output_directory)
+    image_extensions = ['.jpg', '.jpeg', '.png', '.gif', '.bmp']
 
-    # Get a list of all files in the input directory
-    files = os.listdir(input_directory)
+    # Iterate over all files and directories in the given directory
+    for root, dirs, files in os.walk(input_directory):
 
-    # Loop through each file in the input directory
-    for file in files:
-        # Open the image using PIL
-        image = Image.open(os.path.join(input_directory, file))
-
-        # Resize the image to 100x100 pixels
-        resized_image = image.resize((100, 100))
-
-        # Generate a unique filename for the output image
-        output_filename = os.path.join(output_directory, f"{os.path.splitext(file)[0]}_resized.jpg")
-
-        # Save the resized image with a unique name in the output directory
-        resized_image.save(output_filename)
-
-        print(f"Saved {output_filename}")
+        for file in files:
+            if any(file.lower().endswith(ext) for ext in image_extensions):
+                im = Image.open(f'{root}\\{file}')
+                im = im.resize((100, 100))
+                file_name = f'{output_directory}\\_{file}_resized.jpg'
+                im.save(file_name)
+                print(f"Saved {file_name}")
 
     print("Image resizing and saving complete.")
 
@@ -144,7 +135,8 @@ datagen = ImageDataGenerator(
         shear_range=0.2,
         zoom_range=0.2,
         horizontal_flip=True,
-        fill_mode='nearest'
+        fill_mode='constant',
+        cval=0
 )
 
 read_images("images\\")
@@ -167,6 +159,6 @@ for batch in datagen.flow(im, batch_size=20,
     for batch in datagen.flow_from_directory(directory=directory, target_size=(100, 100), batch_size=1,
                                              save_to_dir=save_to_dir, save_format='jpg'):
         i += 1
-        if i == 400:
+        if i == 700:
             break
     resize_and_save(directory + f'\\{j}', save_to_dir)"""
