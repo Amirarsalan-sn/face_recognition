@@ -41,8 +41,8 @@ print('train and test data splitted.')
 x_train = x_train.reshape(len(x_train), 100, 100, 3)
 x_test = x_test.reshape(len(x_test), 100, 100, 3)
 print(f'train data : {x_train.shape}\ntest data : {x_test.shape}\ny train : {y_train.shape}\ny test : {y_test.shape}')
-batch_size = 64
-epochs = 15
+batch_size = 100
+epochs = 100
 model.fit(x_train, y_train, epochs=epochs, batch_size=batch_size, verbose=2)
 
 model.evaluate(x_test, y_test)

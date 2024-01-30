@@ -1,6 +1,7 @@
 .idea/
 images/
 input.csv
+input2.csv
 images_original/
 saved_model/
 images_copy/

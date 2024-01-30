@@ -77,6 +77,7 @@ def resize_and_save(input_directory, output_directory):
         for file in files:
             if any(file.lower().endswith(ext) for ext in image_extensions):
                 im = Image.open(f'{root}\\{file}')
+                im = im.convert('L')
                 im = im.resize((100, 100))
                 file_name = f'{output_directory}\\_{file}_resized.jpg'
                 im.save(file_name)
@@ -100,22 +101,17 @@ def create_csv(search_directory, output_csv):
         for file in files:
             if any(file.lower().endswith(ext) for ext in image_extensions):
                 im = np.array(Image.open(f'{root}\\{file}')).flatten()
-                if len(im) != 30_000:
+                if len(im) != 10_000:
                     print(f'image {root}\\{file} has shape : {len(im)}', file=sys.stderr)
                     # Expand dimensions to make it 3-channel
-                    im = np.reshape(im, (100, 100))
-                    expanded_image_array = np.expand_dims(im, axis=2)
-
-                    # Repeat the grayscale channel along the third axis
-                    im = np.repeat(expanded_image_array, 3, axis=2)
                     plt.imshow(im)
                     plt.show()
-                    im = im.flatten()
+                    raise Exception('found a colorful image')
                     # Convert the NumPy array back to a Pillow image
                 data_csv.append([*im, *classes])
                 del im
     for line in data_csv:
-        if len(line) != 30_016:
+        if len(line) != 10_016:
             raise Exception(f'line has length {len(line)}')
     with open(output_csv, 'w', newline='') as csvfile:
         # Create a CSV writer object
@@ -139,8 +135,8 @@ datagen = ImageDataGenerator(
         cval=0
 )
 
-read_images("images\\")
-create_csv("images\\", 'input.csv')
+read_images("images_gray\\")
+create_csv("images_gray\\", 'input2.csv')
 """im = np.array(Image.open('images\\8\\1.jpg'))
 im = im.reshape((1,) + im.shape)
 print(im.shape)
@@ -154,10 +150,10 @@ for batch in datagen.flow(im, batch_size=20,
     if j == 9:
         continue
     directory = f'images_original\\{j}'
-    save_to_dir = f'images\\{j}'
+    save_to_dir = f'images_gray\\{j}'
     i = 0
     for batch in datagen.flow_from_directory(directory=directory, target_size=(100, 100), batch_size=1,
-                                             save_to_dir=save_to_dir, save_format='jpg'):
+                                             save_to_dir=save_to_dir, save_format='jpg', color_mode='grayscale'):
         i += 1
         if i == 700:
             break
