@@ -149,11 +149,32 @@ def geometry_augment():
         save_to_dir = f'train_images\\{j}'
         i = 0
         for batch in datagen.flow_from_directory(directory=directory, target_size=(200, 200), batch_size=1,
-                                                 save_to_dir=save_to_dir, save_format='jpg'):
+                                                 save_to_dir=save_to_dir, save_format='jpg', color_mode='rgb'):
             i += 1
-            if i == 500:
+            if i == 300:
                 break
         resize_and_save(directory + f'\\{j}', save_to_dir)
+
+
+def augment_each_class(num, directory, save_to_dir):
+    datagen = ImageDataGenerator(
+        rotation_range=30,
+        width_shift_range=0.2,
+        height_shift_range=0.2,
+        shear_range=0.2,
+        zoom_range=0.2,
+        horizontal_flip=True,
+        fill_mode='constant',
+        cval=0
+    )
+
+    i = 0
+    for batch in datagen.flow_from_directory(directory=directory, target_size=(200, 200), batch_size=1,
+                                             save_to_dir=save_to_dir, save_format='jpg', color_mode='rgb'):
+        i += 1
+        if i == num:
+            break
+    resize_and_save(directory, save_to_dir)
 
 
 def color_augment():
@@ -205,19 +226,139 @@ def color_augment():
         print(f'saved augmented images for {root}')
 
 
-#read_images("train_images\\")
-#create_csv("train_images\\", 'train.csv')
-"""im = np.array(Image.open('images\\8\\1.jpg'))
-im = im.reshape((1,) + im.shape)
-print(im.shape)
-i = 0
-for batch in datagen.flow(im, batch_size=20,
-                          save_to_dir='images\\8\\test2', save_prefix='cat', save_format='jpeg'):
-    i += 1
-    if i > 20:
-        break"""
+def create_test_csv(output_csv):
+    image_extensions = ['.jpg', '.jpeg', '.png', '.gif', '.bmp']
+    source_path = f'test_images\\'
+    csv_data = []
+    for root, dirs, files in os.walk(source_path):
+        classes = np.zeros(16)
+        try:
+            file_dir = int(root.replace(source_path, ''))
+            classes[file_dir] = 1
+        except:
+            continue
+
+        for file in files:
+            if any(file.lower().endswith(ext) for ext in image_extensions):
+                im = Image.open(f'{root}\\{file}')
+                if im.mode != 'RGB':
+                    im = im.convert('RGB')
+                im = im.resize((200, 200))
+                im_np = np.array(im).flatten()
+                csv_data.append([*im_np, *classes])
+
+    with open(output_csv, 'w', newline='') as csv_file:
+        # Create a CSV writer object
+        csv_writer = csv.writer(csv_file)
+
+        # Write the data to the CSV file
+        csv_writer.writerows(csv_data)
+
+    print(f'test file created with {len(csv_data)} rows and {len(csv_data[0])} columns.')
+
+
+def create_csv_for_class(root_path, class_num, class_count):
+    image_extensions = ['.jpg']
+    source_path = f'{root_path}\\{class_num}\\'
+    data_csv = []
+    for root, dirs, files in os.walk(source_path):
+        for file in files:
+            if any(file.lower().endswith(ext) for ext in image_extensions):
+                im = Image.open(f'{root}\\{file}')
+                im = np.array(im).flatten()
+                if im.size != 120_000:
+                    raise Exception(f'image {root}\\{file} doesn\'t have the right shape')
+                data_csv.append([*im, 1])
+
+    each_class = class_count // 14
+    for i in range(16):
+        if i == 9 or i == class_num:
+            continue
+        source_path = f'{root_path}\\{i}\\'
+        indexes = random.sample(range(0, class_count + 70),
+                                each_class)  # max count of a class without geometry augmentation is 70.
+        indexes = sorted(indexes)
+        j = 0
+        for root, dirs, files in os.walk(source_path):
+            for file in files:
+                if j not in indexes:
+                    j += 1
+                    continue
+                if any(file.lower().endswith(ext) for ext in image_extensions):
+                    j += 1
+                    im = Image.open(f'{root}\\{file}')
+                    im = np.array(im).flatten()
+                    if im.size != 120_000:
+                        raise Exception(f'image {root}\\{file} doesn\'t have the right shape')
+                    data_csv.append([*im, 0])
+
+    random.shuffle(data_csv)
+    with open(f'{root_path}\\{class_num}_train.csv', 'w', newline='') as csvfile:
+        csv_writer = csv.writer(csvfile)
+
+        # Write the data to the CSV file
+        csv_writer.writerows(data_csv)
+
+    print(f'{root_path}\\{class_num}_train.csv file created with {len(data_csv)} rows and {len(data_csv[0])} columns.')
+
+
+def create_test_csv_for_class(dest_path, class_num):
+    image_extensions = ['.jpg', '.jpeg', '.png', '.gif', '.bmp']
+    source_path = f'test_images\\{class_num}'
+    data_csv = []
+    for root, dirs, files in os.walk(source_path):
+        for file in files:
+            if any(file.lower().endswith(ext) for ext in image_extensions):
+                im = Image.open(f'{root}\\{file}')
+                if im.mode != 'RGB':
+                    im = im.convert('RGB')
+                im = im.resize((200, 200))
+                im_np = np.array(im).flatten()
+                data_csv.append([*im_np, 1])
+
+    remaining_test = len(data_csv)
+    while remaining_test != 0:
+        for root, dirs, files in os.walk('test_images\\'):
+            try:
+                file_dir = int(root.replace('test_images\\', ''))
+            except:
+                continue
+            if file_dir == 9 or file_dir == class_num:
+                continue
+            for file in files:
+                if any(file.lower().endswith(ext) for ext in image_extensions):
+                    if random.randint(1, 5) == 1:
+                        if remaining_test == 0:
+                            break
+                        remaining_test -= 1
+                        im = Image.open(f'{root}\\{file}')
+                        if im.mode != "RGB":
+                            im = im.convert("RGB")
+                        im = im.resize((200, 200))
+                        im = np.array(im).flatten()
+                        data_csv.append([*im, 0])
+
+    random.shuffle(data_csv)
+    with open(f'{dest_path}\\{class_num}_test.csv', 'w', newline='') as csvfile:
+        csv_writer = csv.writer(csvfile)
+
+        # Write the data to the CSV file
+        csv_writer.writerows(data_csv)
+
+    print(f'{dest_path}\\{class_num}_test.csv file created with {len(data_csv)} rows and {len(data_csv[0])} columns.')
+
 
 # color_augment()
-#geometry_augment()
-x = np.loadtxt('train.csv', delimiter=',')
-a = 0
+# geometry_augment()
+# read_images("train_images\\")
+# create_csv("train_images\\", 'train.csv')
+# create_test_csv('test.csv')
+"""for k in range(16):
+    if k == 9:
+        continue
+    augment_each_class(1000, f'color_augmented_images\\{k}', f'D:\\images for the project\\1000_images\\{k}')"""
+for k in range(16):
+    if k == 9:
+        continue
+    create_csv_for_class('D:\\images for the project\\1000_images\\', k, 1000)
+    create_test_csv_for_class('D:\\images for the project\\1000_images\\', k)

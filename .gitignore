@@ -8,3 +8,11 @@ images_copy/
 images_gray/
 test/
 __pychache__/
+color_augmented_images/
+test_images/
+train_images/
+saved_model/
+saved_model/
+saved_model/
+train.csv
+test.csv
