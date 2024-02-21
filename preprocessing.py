@@ -13,9 +13,10 @@ from keras.preprocessing.image import ImageDataGenerator
 import csv
 import imgaug as ia
 import imgaug.augmenters as iaa
+import shutil
 
 class_names = {
-    0: 'Ali Day',
+    0: 'Ali Dayi',
     1: "Mohsen Chavoshi",
     2: 'Mohamad Esfehani',
     3: 'Taraneh Alidostnia',
@@ -37,6 +38,8 @@ image_per_class = {}
 
 
 def read_images(search_directory):
+    if search_directory.startswith('\\'):
+        search_directory = search_directory[0:-1]
     count = 0
     min_size = (1e10, 1e10)
     min_size_addr = None
@@ -47,7 +50,7 @@ def read_images(search_directory):
     # Iterate over all files and directories in the given directory
     for root, dirs, files in os.walk(search_directory):
         try:
-            file_dir = int(root.replace(search_directory, ''))
+            file_dir = int(root.replace(f'{search_directory}\\', ''))
             image_per_class[file_dir] = 0
             # Check if the file has an image extension
         except:
@@ -74,7 +77,9 @@ def read_images(search_directory):
     print('min size addr', min_size_addr)
 
 
-def resize_and_save(input_directory, output_directory):
+def resize_and_save(input_directory, output_directory: str):
+    if output_directory.endswith('\\'):
+        output_directory = output_directory[0:-1]
     image_extensions = ['.jpg', '.jpeg', '.png', '.gif', '.bmp']
 
     # Iterate over all files and directories in the given directory
@@ -83,7 +88,7 @@ def resize_and_save(input_directory, output_directory):
         for file in files:
             if any(file.lower().endswith(ext) for ext in image_extensions):
                 im = Image.open(f'{root}\\{file}')
-                if im.mode in ["L", "P"]:
+                if im.mode != 'RGB':
                     im = im.convert("RGB")
                 im = im.resize((200, 200))
                 file_name = f'{output_directory}\\_{file}_resized.jpg'
@@ -177,9 +182,10 @@ def augment_each_class(num, directory, save_to_dir):
     resize_and_save(directory, save_to_dir)
 
 
-def color_augment():
+def color_augment(source_path: str):
+    if source_path.endswith('\\'):
+        source_path = source_path[0:-1]
     image_extensions = ['.jpg', '.jpeg', '.png', '.gif', '.bmp']
-    source_path = f'color_augmented_images\\'
     ia.seed(random.randint(1, 100))
     seq = iaa.Sequential([
         # Small gaussian blur with random sigma between 0 and 0.5.
@@ -209,7 +215,7 @@ def color_augment():
             if any(file.lower().endswith(ext) for ext in image_extensions):
                 image_dir = True
                 im_np = Image.open(f'{root}\\{file}').resize((200, 200))
-                if im_np.mode in ["L", "P"]:
+                if im_np.mode != "RGB":
                     im_np = im_np.convert("RGB")
                 images.append(im_np)
 
@@ -257,9 +263,14 @@ def create_test_csv(output_csv):
     print(f'test file created with {len(csv_data)} rows and {len(csv_data[0])} columns.')
 
 
-def create_csv_for_class(root_path, class_num, class_count):
+def create_csv_for_class(dest_path: str, root_path: str, class_num, class_count):
+    if root_path.endswith('\\'):
+        root_path = root_path[0:-1]
+
+    if dest_path.endswith('\\'):
+        dest_path = dest_path[0:-1]
     image_extensions = ['.jpg']
-    source_path = f'{root_path}\\{class_num}\\'
+    source_path = f'{root_path}\\{class_num}'
     data_csv = []
     for root, dirs, files in os.walk(source_path):
         for file in files:
@@ -270,41 +281,39 @@ def create_csv_for_class(root_path, class_num, class_count):
                     raise Exception(f'image {root}\\{file} doesn\'t have the right shape')
                 data_csv.append([*im, 1])
 
-    each_class = class_count // 14
+    each_class = class_count // 15
     for i in range(16):
-        if i == 9 or i == class_num:
+        if i == class_num:
             continue
-        source_path = f'{root_path}\\{i}\\'
-        indexes = random.sample(range(0, class_count + 70),
-                                each_class)  # max count of a class without geometry augmentation is 70.
-        indexes = sorted(indexes)
-        j = 0
+        source_path = f'{root_path}\\{i}'
         for root, dirs, files in os.walk(source_path):
-            for file in files:
-                if j not in indexes:
-                    j += 1
-                    continue
-                if any(file.lower().endswith(ext) for ext in image_extensions):
-                    j += 1
-                    im = Image.open(f'{root}\\{file}')
-                    im = np.array(im).flatten()
-                    if im.size != 120_000:
-                        raise Exception(f'image {root}\\{file} doesn\'t have the right shape')
-                    data_csv.append([*im, 0])
+            filtered_files = list(filter(lambda x: (x.lower().endswith(ext) for ext in image_extensions), files))
+            sampled_files = random.sample(filtered_files, each_class)
+            for sample in sampled_files:
+                im = Image.open(f'{root}\\{sample}')
+                im = np.array(im).flatten()
+                if im.size != 120_000:
+                    raise Exception(f'image {root}\\{sample} doesn\'t have the right shape')
+                data_csv.append([*im, 0])
 
     random.shuffle(data_csv)
-    with open(f'{root_path}\\{class_num}_train.csv', 'w', newline='') as csvfile:
+    with open(f'{dest_path}\\{class_num}_train.csv', 'w', newline='') as csvfile:
         csv_writer = csv.writer(csvfile)
 
         # Write the data to the CSV file
         csv_writer.writerows(data_csv)
 
-    print(f'{root_path}\\{class_num}_train.csv file created with {len(data_csv)} rows and {len(data_csv[0])} columns.')
+    print(f'{dest_path}\\{class_num}_train.csv file created with {len(data_csv)} rows and {len(data_csv[0])} columns.')
 
 
-def create_test_csv_for_class(dest_path, class_num):
+def create_test_csv_for_class(dest_path: str, class_num, test_path: str):
+    if test_path.endswith('\\'):
+        test_path = test_path[0:-1]
+
+    if dest_path.endswith('\\'):
+        dest_path = dest_path[0:-1]
     image_extensions = ['.jpg', '.jpeg', '.png', '.gif', '.bmp']
-    source_path = f'test_images\\{class_num}'
+    source_path = f'{test_path}\\{class_num}'
     data_csv = []
     for root, dirs, files in os.walk(source_path):
         for file in files:
@@ -317,26 +326,26 @@ def create_test_csv_for_class(dest_path, class_num):
                 data_csv.append([*im_np, 1])
 
     remaining_test = len(data_csv)
-    while remaining_test != 0:
-        for root, dirs, files in os.walk('test_images\\'):
-            try:
-                file_dir = int(root.replace('test_images\\', ''))
-            except:
-                continue
-            if file_dir == 9 or file_dir == class_num:
-                continue
-            for file in files:
-                if any(file.lower().endswith(ext) for ext in image_extensions):
-                    if random.randint(1, 5) == 1:
-                        if remaining_test == 0:
-                            break
-                        remaining_test -= 1
-                        im = Image.open(f'{root}\\{file}')
-                        if im.mode != "RGB":
-                            im = im.convert("RGB")
-                        im = im.resize((200, 200))
-                        im = np.array(im).flatten()
-                        data_csv.append([*im, 0])
+    test_images_list = []
+
+    for root, dirs, files in os.walk(test_path):
+        try:
+            file_dir = int(root.replace(f'{test_path}\\', ''))
+        except:
+            continue
+        if file_dir == class_num:
+            continue
+        for file in files:
+            if any(file.lower().endswith(ext) for ext in image_extensions):
+                test_images_list.append(f'{root}\\{file}')
+    samples = random.sample(test_images_list, remaining_test)
+    for sample in samples:
+        im = Image.open(sample)
+        if im.mode != "RGB":
+            im = im.convert("RGB")
+        im = im.resize((200, 200))
+        im = np.array(im).flatten()
+        data_csv.append([*im, 0])
 
     random.shuffle(data_csv)
     with open(f'{dest_path}\\{class_num}_test.csv', 'w', newline='') as csvfile:
@@ -348,17 +357,41 @@ def create_test_csv_for_class(dest_path, class_num):
     print(f'{dest_path}\\{class_num}_test.csv file created with {len(data_csv)} rows and {len(data_csv[0])} columns.')
 
 
-# color_augment()
-# geometry_augment()
-# read_images("train_images\\")
-# create_csv("train_images\\", 'train.csv')
-# create_test_csv('test.csv')
-"""for k in range(16):
-    if k == 9:
-        continue
-    augment_each_class(1000, f'color_augmented_images\\{k}', f'D:\\images for the project\\1000_images\\{k}')"""
-for k in range(16):
-    if k == 9:
-        continue
-    create_csv_for_class('D:\\images for the project\\1000_images\\', k, 1000)
-    create_test_csv_for_class('D:\\images for the project\\1000_images\\', k)
+def train_test_split(input_data_path, output_path: str, train_size):
+    if output_path.endswith('\\'):
+        output_path = output_path[0:-1]
+
+    if input_data_path.endswith('\\'):
+        input_data_path = input_data_path[0:-1]
+    class_number = 0
+    if not (0 <= train_size <= 1):
+        raise Exception(f'train_size should be a float number, the given number was({train_size})')
+    image_extensions = ['.jpg', '.jpeg', '.png', '.gif', '.bmp']
+    for root, dirs, files in os.walk(input_data_path):
+        try:
+            if dirs:
+                class_number = root.replace(f'{input_data_path}\\', '')
+        except:
+            continue
+        if not files:
+            continue
+        filtered_list = list(filter(lambda x: (x.lower().endswith(ext) for ext in image_extensions), files))
+        print(f'splitting class {class_number} with size {len(filtered_list)}')
+        sample_size = int(len(filtered_list) * (1 - train_size))
+        samples = random.sample(filtered_list, sample_size)
+        for sample in samples:
+            source_path = f'{root}\\{sample}'
+            dest_path = f'{output_path}\\{class_number}\\{sample}'
+            shutil.move(source_path, dest_path)
+
+
+train_test_split('D:\\new data set\\raw input', 'D:\\new data set\\test data', 0.8)
+color_augment('D:\\new data set\\raw input')
+input('proceed ? ')
+for i in range(16):
+    augment_each_class(2000, f'D:\\new data set\\raw input\\{i}', f'D:\\new data set\\train data\\{i}')
+input('proceed ? ')
+read_images('D:\\new data set\\train data')
+for i in range(16):
+    create_csv_for_class('D:\\new data set', 'D:\\new data set\\train data', i, 2000)
+    create_test_csv_for_class('D:\\new data set', i, 'D:\\new data set\\test data')
