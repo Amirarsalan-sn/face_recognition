@@ -8,10 +8,10 @@ from PyQt5.QtGui import QPixmap
 from PyQt5.QtCore import Qt
 
 class_names = {
-    0: 'Ali Day',
+    0: 'Ali Dayi',
     1: "Mohsen Chavoshi",
     2: 'Mohamad Esfehani',
-    3: 'Taraneh Alidostnia',
+    3: 'Taraneh Alidosti',
     4: 'Bahram Radan',
     5: 'Sogol Khaligh',
     6: 'Homayoon Shajarian',
@@ -26,13 +26,32 @@ class_names = {
     15: 'Bahareh Kianafshar',
 }
 
+probability_reduction = {
+    0: 1,
+    1: 1,
+    2: 1,
+    3: 1,
+    4: 1,
+    5: 1,
+    6: 1,
+    7: 1,
+    8: 1,
+    9: 1,
+    10: 1,
+    11: 1,
+    12: 0.82,
+    13: 1,
+    14: 0.6786,
+    15: 1,
+}
+
 
 class MainWindow(QMainWindow):
-    def __init__(self, face_model):
+    def __init__(self, face_models):
         super().__init__()
         self.setWindowTitle("Image face recognizer")
         self.setGeometry(100, 100, 800, 600)
-        self.face_model = face_model
+        self.face_models = face_models
         # Create a central widget
         central_widget = QWidget()
         self.setCentralWidget(central_widget)
@@ -78,27 +97,35 @@ class MainWindow(QMainWindow):
     def process_image(self, image_path):
         # Perform further processing with the image path
         im = Image.open(image_path)
-        im = im.resize((100, 100))
-        im_copy = np.array(im)
-        if im_copy.shape != (100, 100, 3):
-            expanded_image_array = np.expand_dims(im_copy, axis=2)
-            im_copy = np.repeat(expanded_image_array, 3, axis=2)
+        if im.mode != 'RGB':
+            im = im.convert('RGB')
 
+        im = im.resize((200, 200))
+        im_copy = np.array(im)
         im_copy = im_copy / 255.0
-        y_pred = self.face_model.predict(im_copy.reshape(1, 100, 100, 3))
-        y_pred_new = [0 if x < 0.01 else x for x in y_pred[0]]
-        print(y_pred_new)
-        return y_pred_new
+        im_copy = im_copy.reshape((1, 200, 200, 3))
+        y_pred = [0 for i in range(16)]
+        for i in range(16):
+            y_pred[i] = self.face_models[i].predict(im_copy)[0][0]
+            y_pred[i] *= probability_reduction[i]
+            if y_pred[i] < 0.01:
+                y_pred[i] = 0
+
+        print(y_pred)
+        return y_pred
 
 
 if __name__ == "__main__":
-    model = load_model('saved_model')
+    models = [None for i in range(16)]
+    for i in range(16):
+        print('loading model: ', i)
+        models[i] = load_model(f'D:\\new data set\\saved_models\\saved_model_{i}')
 
     app = QApplication(sys.argv)
-    mainWindow = MainWindow(model)
-    for person in class_names.keys():
-        item = QTableWidgetItem(class_names[person])
-        mainWindow.table.setItem(person, 0, item)
+    mainWindow = MainWindow(models)
+    for i in range(16):
+        item = QTableWidgetItem(class_names[i])
+        mainWindow.table.setItem(i, 0, item)
     mainWindow.show()
 
     sys.exit(app.exec())
