@@ -28,7 +28,11 @@ This file focuses on implementing, training, and evaluating the neural network a
 
 ### About the architecture
 In brief, this was the architecture I came up with to have the best performance. The architecture could not be so complicated because of the memory limitations in my graphic card (for mor information see the report).
+
+
 ![Architecture](docs/images/architecture.jpg)
+
+
 ## Prediction.py
 This section implements the frontend of the project, allowing users to predict the identity of faces in images. A trust coefficient is introduced to improve the predictions of less reliable models.
 
@@ -37,8 +41,14 @@ After extensive training and testing, the model achieves an average accuracy of 
 
 Approximately 90% (87%) of the test images were guessed correctly (the images class were among the top three choices of the model). Among the correct guesses, 70% of them were rank 1, 20% of them were at rank 2, and the rest were at rank 3.
 Also if we remove the two worst individual models (Mehran Ghafourian and Alireza Beyranvand) the percentage of correct guesses will reach to 95% of the hole test images (that means, we don’t want to predict their images, and they will be removed from the list of celebrities which we intend to predict their faces).
+
+
 ![170 images results](docs/images/170_results.jpg)
+
+
 ![170 images removed](docs/images/170_results_removed.jpg)
+
+
 ## How to Use
 1. **Preprocessing**: 
     - Run `Preprocessing.py` to preprocess the raw input photos and generate `train.csv` and `test.csv`.
