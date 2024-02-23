@@ -56,7 +56,7 @@ This section implements the frontend of the project, allowing users to predict t
 ## Evaluation
 After extensive training and testing, the model achieves an average accuracy of 85% across all classes (some classes even achived 95% accuracy). Further evaluation using a new dataset of 170 images demonstrates the model's effectiveness, with approximately 90% of test images being correctly identified.
 
-Approximately 90% (87%) of the test images were guessed correctly (the images class were among the top three choices of the model). Among the correct guesses, 70% of them were rank 1, 20% of them were at rank 2, and the rest were at rank 3.
+Approximately 90% (87%) of the test images were guessed correctly (the image's class was among the top three choices of the model). Among the correct guesses, 70% of them were rank 1, 20% of them were at rank 2, and the rest were at rank 3.
 Also if we remove the two worst individual models (Mehran Ghafourian and Alireza Beyranvand) the percentage of correct guesses will reach to 95% of the hole test images (that means, we don’t want to predict their images, and they will be removed from the list of celebrities which we intend to predict their faces).
 
 
