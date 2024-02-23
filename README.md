@@ -78,6 +78,8 @@ Also if we remove the two worst individual models (Mehran Ghafourian and Alireza
 
       ![example image](docs/images/example_image.jpg)
 
+   for more examples, please check the report file.
+
 ## Conclusion
 The project demonstrates the effectiveness of using preprocessing techniques and neural networks for face recognition tasks. While improvements can be made through additional data gathering and model tuning, the current system offers a solid foundation for further exploration.
 
