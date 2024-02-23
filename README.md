@@ -5,7 +5,7 @@ Author: Amir Arsalan Sanati
 ## Introduction
 This project implements a face recognition system using Python. The system utilizes preprocessing techniques, data augmentation, and neural networks to create a 16-class face recognition model with high accuracy. The model is designed to distinguish faces of 16 different known Persian celebrities.
 
-NOTE: This readme provides an overview of the face recognition project, its structure, and key findings. For detailed implementation and code explanations, refer to the [report file](docs/report_english).
+NOTE: This readme provides an overview of the face recognition project, its structure, and key findings. For detailed implementation and code explanations, refer to the [report file](docs/report_english.pdf).
 
 ## Project Structure
 The project consists of three main files:
