@@ -3,7 +3,24 @@
 Author: Amir Arsalan Sanati
 
 ## Introduction
-This project implements a face recognition system using Python. The system utilizes preprocessing techniques, data augmentation, and neural networks to create a 16-class face recognition model with high accuracy. The model is designed to distinguish faces of 16 different known Persian celebrities.
+This project implements a face recognition system using tensorflow and keras. The system utilizes preprocessing techniques, data augmentation, and neural networks to create a 16-class face recognition model with high accuracy. The model is designed to distinguish faces of 16 different known Persian celebrities:
+
+- **Ali Dayi**
+- **Mohsen Chavoshi**
+- **Mohamad Esfehani**
+- **Taraneh Alidosti**
+- **Bahram Radan**
+- **Sogol Khaligh**
+- **Homayoon Shajarian**
+- **Sahar Dolatshahi**
+- **Mehran Ghafourian**
+- **Mehran Modiri**
+- **Reza Attaran**
+- **Javad Razavian**
+- **Seyed Jalal Hoseini**
+- **Alireza Beyranvand**
+- **Nazanin Bayati**
+- **Bahareh Kianafshar**
 
 NOTE: This readme provides an overview of the face recognition project, its structure, and key findings. For detailed implementation and code explanations, refer to the [report file](docs/report_english.pdf).
 
@@ -27,7 +44,7 @@ The preprocessing involves several steps:
 This file focuses on implementing, training, and evaluating the neural network architecture. The architecture of the network evolves to handle the complexities of facial recognition. The final architecture achieves significantly improved accuracy compared to earlier iterations.
 
 ### About the architecture
-In brief, this was the architecture I came up with to have the best performance. The architecture could not be so complicated because of the memory limitations in my graphic card (for mor information see the report).
+In brief, I didn't use pre-trained models and transfared learning and this was the architecture I came up with to have the best result and performance. The architecture could not be so complicated because of the memory limitations in my graphic card (for mor information see the report).
 
 
 ![Architecture](docs/images/architecture.jpg)
@@ -56,7 +73,7 @@ Also if we remove the two worst individual models (Mehran Ghafourian and Alireza
     - Execute `Main.py` to implement, train, and evaluate the neural network architecture.
 3. **Prediction**:
     - Run `Prediction.py` to utilize the frontend of the project. Drag and drop your desired photo onto the application window to predict the class of the face.
-    - Put the address of your models inside the parameter of (load_model) method and simply run the `Prediction.py` (you can also use the [uploaded models](docs/models).
+    - Put the address of your models inside the parameter of (load_model) method (in the `Prediction.py` file) and simply run the `Prediction.py` (you can also use the [uploaded models](docs/models)).
 
 ## Conclusion
 The project demonstrates the effectiveness of using preprocessing techniques and neural networks for face recognition tasks. While improvements can be made through additional data gathering and model tuning, the current system offers a solid foundation for further exploration.
