@@ -74,6 +74,9 @@ Also if we remove the two worst individual models (Mehran Ghafourian and Alireza
 3. **Prediction**:
     - Run `Prediction.py` to utilize the frontend of the project. Drag and drop your desired photo onto the application window to predict the class of the face.
     - Put the address of your models inside the parameter of (load_model) method (in the `Prediction.py` file) and simply run the `Prediction.py` (you can also use the [uploaded models](docs/models)).
+    - NOTE that the images you give to the application should contain only and only a single object (face of the person) here is and example:
+
+      ![example image](docs/images/example_image.jpg)
 
 ## Conclusion
 The project demonstrates the effectiveness of using preprocessing techniques and neural networks for face recognition tasks. While improvements can be made through additional data gathering and model tuning, the current system offers a solid foundation for further exploration.
